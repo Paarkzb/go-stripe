@@ -33,6 +33,8 @@ type config struct {
 		secret string
 		key    string
 	}
+	secretkey string
+	frontend  string
 }
 
 type application struct {
@@ -68,6 +70,8 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Application environment {development|production}")
 	flag.StringVar(&cfg.db.dsn, "dsn", "postgres://postgres:qwe@localhost:5432/widgets?TimeZone=Asia/Irkutsk&sslmode=disable", "DSN")
 	flag.StringVar(&cfg.api, "api", "http://localhost:4001", "URL to api")
+	flag.StringVar(&cfg.secretkey, "secret", "sadlfjkqwoijsclj1312nfasljkj", "secret key")
+	flag.StringVar(&cfg.frontend, "frontend", "http://localhost:4000", "url to front end")
 
 	flag.Parse()
 

@@ -11,7 +11,6 @@ cmd = "go build -o ./tmp/gostripe.exe ./cmd/web/"
 # Binary file yields from `cmd`.
 bin = "tmp/gostripe.exe"
 # Customize binary.
-#full_bin = "STRIPE_SECRET=sk_test_51OPJuzA7fyThInDhFicgvfXh4ktVS0DLcXqOaKtUTZzBk4JZE0IrhyHZwyrcVeQP7eqn8d50VCdVS5JtqO4tMlHk00uYQ7N4id STRIPE_KEY=pk_test_51OPJuzA7fyThInDhoRjAOXw0fWUvZMTcQ0jYH408dkK5AkflNPAxSztTxm81F2feekUBvr4AW3pWmQnQ3pihtgRc00Jd7tCGpc tmp/gostripe.exe"
 #full_bin = ""
 # Watch these filename extensions.
 include_ext = ["go", "tpl", "tmpl", "html", "gohtml"]
