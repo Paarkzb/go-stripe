@@ -365,3 +365,57 @@ func (m *DBModel) GetAllOrders(is_recurring bool) ([]*Order, error) {
 	}
 	return orders, nil
 }
+
+func (m *DBModel) GetOrderByID(orderID int) (Order, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `
+    select 
+        o.id, o.widget_id, o.transaction_id, o.customer_id,
+        o.status_id, o.quantity, o.amount, o.created_at, o.updated_at,
+        w.id, w.name, t.id, t.amount, t.currency, t.last_four, t.expiry_month,
+        t.expiry_year, t.payment_intent, t.bank_return_code, 
+        c.id, c.first_name, c.last_name, c.email
+    from orders o
+        left join widgets w on (o.widget_id = w.id)
+        left join transactions t on (o.transaction_id = t.id)
+        left join customers c on (o.customer_id = c.id)
+    where
+        o.id = $1
+    `
+
+	row := m.DB.QueryRowContext(ctx, query, orderID)
+
+	var o Order
+	err := row.Scan(
+		&o.ID,
+		&o.WidgetID,
+		&o.TransactionID,
+		&o.CustomerID,
+		&o.StatusID,
+		&o.Quantity,
+		&o.Amount,
+		&o.CreatedAt,
+		&o.UpdatedAt,
+		&o.Widget.ID,
+		&o.Widget.Name,
+		&o.Transaction.ID,
+		&o.Transaction.Amount,
+		&o.Transaction.Currency,
+		&o.Transaction.LastFour,
+		&o.Transaction.ExpiryMonth,
+		&o.Transaction.ExpiryYear,
+		&o.Transaction.PaymentIntent,
+		&o.Transaction.BankReturnCode,
+		&o.Customer.ID,
+		&o.Customer.FirstName,
+		&o.Customer.LastName,
+		&o.Customer.Email,
+	)
+	if err != nil {
+		return o, err
+	}
+
+	return o, nil
+}
