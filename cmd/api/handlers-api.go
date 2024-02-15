@@ -580,12 +580,19 @@ func (app *application) Refund(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    var resp struct {
-        Error bool `json:"error"`
-        Message string `json:"message"`
-    }
-    resp.Error = false
-    resp.Message = "Charge refunded"
+	// update status in db
+	err = app.DB.UpdateOrderStatus(chargeToRefund.ID, 2)
+	if err != nil {
+		app.badRequest(w, r, errors.New("the charge was refunded, but the database could not be updated"))
+		return
+	}
 
-    app.writeJSON(w, http.StatusOK, resp)
+	var resp struct {
+		Error   bool   `json:"error"`
+		Message string `json:"message"`
+	}
+	resp.Error = false
+	resp.Message = "Charge refunded"
+
+	app.writeJSON(w, http.StatusOK, resp)
 }
