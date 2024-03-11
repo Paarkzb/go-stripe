@@ -53,7 +53,7 @@ func (app *application) serve() error {
 		WriteTimeout:      5 * time.Second,
 	}
 
-	app.infoLog.Println(fmt.Sprintf("Starting Back End server in %s mode on port %d", app.config.env, app.config.port))
+	app.infoLog.Printf(fmt.Sprintf("Starting Back End server in %s mode on port %d", app.config.env, app.config.port))
 
 	return srv.ListenAndServe()
 }
