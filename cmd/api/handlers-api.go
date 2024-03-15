@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -38,6 +39,17 @@ type jsonResponse struct {
 	Message string `json:"message,omitempty"`
 	Content string `json:"content,omitempty"`
 	ID      int    `json:"id,omitempty"`
+}
+
+type Invoice struct {
+	ID        int       `json:"id"`
+	Quantity  int       `json:"quantity"`
+	Amount    int       `json:"amount"`
+	Product   string    `json:"product"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"-"`
 }
 
 func (app *application) GetPaymentIntent(w http.ResponseWriter, r *http.Request) {
@@ -191,10 +203,27 @@ func (app *application) CreateCustomerAndSubscribeToPlan(w http.ResponseWriter, 
 			UpdatedAt:     time.Now(),
 		}
 
-		_, err = app.SaveOrder(order)
+		orderID, err := app.SaveOrder(order)
 		if err != nil {
 			app.errorLog.Println(err)
 			return
+		}
+
+		// call invoice microservice
+		inv := Invoice{
+			ID:        orderID,
+			Amount:    order.Amount,
+			Product:   "Widget",
+			Quantity:  order.Quantity,
+			FirstName: data.FirstName,
+			LastName:  data.LastName,
+			Email:     data.Email,
+			CreatedAt: time.Now(),
+		}
+
+		err = app.callInvoiceMicro(inv)
+		if err != nil {
+			app.errorLog.Println(err)
 		}
 	}
 	// msg := ""
@@ -410,6 +439,32 @@ func (app *application) VirtualTerminalPaymentSucceeded(w http.ResponseWriter, r
 	}
 
 	app.writeJSON(w, http.StatusOK, txn)
+}
+
+func (app *application) callInvoiceMicro(inv Invoice) error {
+	app.infoLog.Println("Sending mail")
+	url := "http://localhost:5000/invoice/create-and-send"
+	out, err := json.MarshalIndent(inv, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(out))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	app.infoLog.Println(resp.Body, "RESP BODY")
+
+	return nil
 }
 
 func (app *application) SendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
